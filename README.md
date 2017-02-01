@@ -7,7 +7,8 @@ Also uses basic AES encryption.
 ### Dependencies
 
 #### Linux
- - sudo apt-get install pip
+ - sudo apt-get install python-pip
+ - sudo apt-get install python-tk
  - pip install pycryptodome
 
 #### Windows
