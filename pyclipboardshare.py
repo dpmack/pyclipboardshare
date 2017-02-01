@@ -2,26 +2,29 @@ from Crypto.Cipher import AES
 from Crypto import Random
 from Tkinter import Tk, TclError
 import socket
+import random
 import base64
 import atexit
 from select import select
 import os.path
 
 class pyClipboardShare:
-    rootTK=None
-    KEY_FILE = 'key.aes'
-    KEY = ''
-    crypt=None
+    DEBUG=False
+    verifyIntLength=6
     PORT=34236
+    KEY_FILE = 'key.aes'
+    packetMax=1024*1024
+
+    KEY = ''
+    rootTK=None
+    crypt=None
     SOCK_OUT=None
     SOCK_IN=None
     currentText=''
     pause=False
     buffers={}
-    DEBUG=False
     running=True
     ownIP=None
-    packetMax=1024*1024
     
     def __init__(self):
         self.rootTK = Tk()
@@ -91,12 +94,17 @@ class pyClipboardShare:
                     if (self.DEBUG): print('Recieved chunk: ' + chunk)
                     decoded = base64.decodestring(chunk)
                     if (self.DEBUG): print('Decoded chunk: ' + decoded)
-                    self.currentText = self.decrypt(decoded)
-                    self.setClipboard(self.currentText)
+                    text = self.decrypt(decoded)
+                    if text != None:
+                        self.currentText = text
+                        self.setClipboard(self.currentText)
                 self.pause = False
         self.rootTK.after(100, self.watchBroadcast)
         
     def encrypt(self, text):
+        if self.verifyIntLength:
+            number = random.randint(pow(10, self.verifyIntLength - 1), pow(10, self.verifyIntLength) - 1)
+            text = str(number) + text
         text += '\00'
         short = 16 - (len(text) % 16)
         text += Random.get_random_bytes(short)
@@ -105,8 +113,14 @@ class pyClipboardShare:
         return data
 
     def decrypt(self, data):
-        text = self.crypt.decrypt(data)
-        return text.split('\00')[0]
+        text = self.crypt.decrypt(data).split('\00')[0]
+        if self.verifyIntLength:
+            number = text[:self.verifyIntLength]
+            if not(number.isdigit()):
+                if self.DEBUG: print('Text failed decryption verification: ' + text)
+                return None
+            text = text[self.verifyIntLength:]
+        return text
     
     def send(self, data):
         outData = base64.encodestring(data) + '\00'
