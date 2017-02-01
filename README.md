@@ -11,5 +11,5 @@ Also uses basic AES encryption.
  - pip install pycryptodome
 
 #### Windows
-(PIP comes with latest pythons releases)
+(PIP comes with latest python releases)
  - python -m pip install SomePackage
