@@ -8,6 +8,7 @@ import base64
 import atexit
 from select import select
 import os.path
+import pickle
 
 class pyClipboardShare:
     DEBUG=False
@@ -28,6 +29,7 @@ class pyClipboardShare:
     ownIP=None
     
     def __init__(self):
+        global bleh
         self.rootTK = Tk()
         self.rootTK.withdraw()
 
@@ -103,6 +105,7 @@ class pyClipboardShare:
         self.rootTK.after(100, self.watchBroadcast)
         
     def encrypt(self, text):
+        text = pickle.dumps(text)
         if self.verifyIntLength:
             number = random.randint(pow(10, self.verifyIntLength - 1), pow(10, self.verifyIntLength) - 1)
             text = str(number) + text
@@ -120,7 +123,7 @@ class pyClipboardShare:
             if not(number.isdigit()):
                 if self.DEBUG: print('Text failed decryption verification: ' + text)
                 return None
-            text = text[self.verifyIntLength:]
+            text = pickle.loads(text[self.verifyIntLength:])
         return text
     
     def send(self, data):
